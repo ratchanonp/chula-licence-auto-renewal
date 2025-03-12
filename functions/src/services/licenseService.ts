@@ -1,22 +1,42 @@
 import * as logger from "firebase-functions/logger";
-import fetch, { Headers, RequestInit, Response } from "node-fetch";
-import { secrets, constants } from "../config/secrets";
-import { BorrowLicenseParams, ProgramLicenseID, longestBorrowDuration } from "../types/license";
+import fetch, {Headers, RequestInit, Response} from "node-fetch";
+import {secrets, constants} from "../config/secrets";
+import {BorrowLicenseParams, ProgramLicenseID, longestBorrowDuration} from "../types/license";
 
-// Custom error types for better error handling
+/**
+ * Custom error class for license-related errors
+ * @class LicenseError
+ * @extends {Error}
+ */
 class LicenseError extends Error {
+  /**
+   * Creates an instance of LicenseError
+   * @param {string} message - Error message
+   * @param {string} code - Error code
+   */
   constructor(message: string, public readonly code: string) {
     super(message);
     this.name = "LicenseError";
   }
 }
 
-// HTTP Status codes
+/**
+ * HTTP Status codes used in the application
+ */
 const HTTP_STATUS = {
   REDIRECT: 302,
 } as const;
 
+/**
+ * Service class for handling license-related operations
+ */
 export class LicenseService {
+  /**
+   * Base URL for the license service API
+   * @private
+   */
+  private static readonly BASE_URL = "https://license.it.chula.ac.th";
+
   /**
    * Validates the login credentials are set
    * @throws {LicenseError} If credentials are not set
@@ -32,6 +52,8 @@ export class LicenseService {
 
   /**
    * Creates common headers for requests
+   * @param {string[]} [cookie] - Optional cookie array to include in headers
+   * @returns {Headers} Headers object with common settings
    */
   private static createHeaders(cookie?: string[]): Headers {
     const headers = new Headers();
@@ -44,6 +66,8 @@ export class LicenseService {
 
   /**
    * Validates the HTTP response
+   * @param {Response} response - Response to validate
+   * @param {string} operation - Name of the operation for error context
    * @throws {LicenseError} If response status is not as expected
    */
   private static validateResponse(response: Response, operation: string): void {
@@ -57,6 +81,8 @@ export class LicenseService {
 
   /**
    * Validates the cookies from response
+   * @param {string[] | undefined} cookies - Cookies to validate
+   * @returns {string[]} Validated cookies array
    * @throws {LicenseError} If cookies are missing or invalid
    */
   private static validateCookies(cookies: string[] | undefined): string[] {
@@ -68,6 +94,7 @@ export class LicenseService {
 
   /**
    * Validates borrow parameters
+   * @param {BorrowLicenseParams} params - Parameters to validate
    * @throws {LicenseError} If parameters are invalid
    */
   private static validateBorrowParams(params: BorrowLicenseParams): void {
@@ -97,6 +124,8 @@ export class LicenseService {
 
   /**
    * Formats a date in the required format (DD/MM/YYYY)
+   * @param {Date} date - Date to format
+   * @returns {string} Formatted date string
    */
   private static formatDate(date: Date): string {
     const day = date.getDate().toString().padStart(2, "0");
@@ -106,10 +135,10 @@ export class LicenseService {
   }
 
   /**
-   * Logs into the Chula License Portal and returns the session cookies
-   * @throws {LicenseError} If login fails
+   * Performs login to the license service
+   * @returns {Promise<string>} Cookie string for authenticated session
    */
-  static async login(): Promise<string[]> {
+  public static async login(): Promise<string[]> {
     try {
       this.validateCredentials();
 
@@ -146,10 +175,56 @@ export class LicenseService {
   }
 
   /**
-   * Borrows a license for the specified program
-   * @throws {LicenseError} If borrowing fails
+   * Handles API response and extracts operation result
+   * @param {Response} response - Fetch API response
+   * @param {string} operation - Name of the operation being performed
+   * @returns {Promise<void>}
+   * @private
    */
-  static async borrowLicense(cookie: string[], params: BorrowLicenseParams): Promise<void> {
+  private static async handleResponse(response: Response, operation: string): Promise<void> {
+    if (response.status !== HTTP_STATUS.REDIRECT) {
+      throw new LicenseError(
+        `${operation} failed with status: ${response.status}`,
+        "INVALID_RESPONSE"
+      );
+    }
+  }
+
+  /**
+   * Extracts cookies from response headers
+   * @param {Headers} cookies - Response headers containing cookies
+   * @returns {string[]} Array of cookie strings
+   * @private
+   */
+  private static extractCookies(cookies: Headers): string[] {
+    const setCookieHeader = cookies.get("set-cookie");
+    if (!setCookieHeader) {
+      throw new Error("No cookies found in response");
+    }
+    return Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+  }
+
+  /**
+   * Borrows a license for a program
+   * @param {string} cookie - Authentication cookie
+   * @param {Object} params - License borrowing parameters
+   * @param {string} params.azureUserId - Azure user ID
+   * @param {string} params.userPrincipalName - User's email
+   * @param {ProgramLicenseID} params.programLicenseId - ID of the program license
+   * @param {Date} params.borrowDate - Date when the license is borrowed
+   * @param {Date} params.expiryDate - Date when the license expires
+   * @returns {Promise<void>}
+   */
+  public static async borrowLicense(
+    cookie: string,
+    params: {
+      azureUserId: string;
+      userPrincipalName: string;
+      programLicenseId: ProgramLicenseID;
+      borrowDate: Date;
+      expiryDate: Date;
+    }
+  ): Promise<void> {
     try {
       this.validateBorrowParams(params);
 
@@ -165,7 +240,7 @@ export class LicenseService {
 
       const requestOptions: RequestInit = {
         method: "POST",
-        headers: this.createHeaders(cookie),
+        headers: this.createHeaders([cookie]),
         body: encodedPayload.toString(),
         redirect: "manual",
       };
@@ -186,4 +261,4 @@ export class LicenseService {
       throw new LicenseError("License borrow failed unexpectedly", "UNKNOWN_ERROR");
     }
   }
-} 
+}
