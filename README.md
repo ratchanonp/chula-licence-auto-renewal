@@ -1,27 +1,29 @@
 # Chula Software Renewal Automation
 
-This project helps Chula students automate the renewal process for borrowed software like Adobe CC, Zoom, and Foxit PDF Reader.  It uses Firebase Cloud Functions (v2) to schedule automatic renewals, preventing interruptions and the frustration of expired licenses.
+This project helps Chula students automate the renewal process for borrowed software like Adobe CC, Zoom, and Foxit PDF Reader. It uses Firebase Cloud Functions (v2) with TypeScript to schedule automatic renewals, preventing interruptions and the frustration of expired licenses.
 
 ## Problem
 
-Chulalongkorn University provides various software benefits for students, including Adobe CC, Zoom, and Foxit PDF Reader. These licenses have expiration dates and require manual renewal.  Often, students need to use the software urgently only to find out the license has expired. Remembering to renew these licenses can be a hassle.
+Chulalongkorn University provides various software benefits for students, including Adobe CC, Zoom, and Foxit PDF Reader. These licenses have expiration dates and require manual renewal. Often, students need to use the software urgently only to find out the license has expired. Remembering to renew these licenses can be a hassle.
 
 ## Solution
 
-This project leverages Firebase Cloud Functions (v2) to schedule a function that automatically re-borrows the software before it expires. This eliminates the need for manual renewal and ensures uninterrupted access to these essential tools.
+This project leverages Firebase Cloud Functions (v2) with TypeScript to schedule a function that automatically re-borrows the software before it expires. This eliminates the need for manual renewal and ensures uninterrupted access to these essential tools.
 
 ## Features
 
 * **Automated Renewal:** Scheduled Firebase Cloud Functions automatically renew specified software licenses.
-* **Support for Multiple Software:** Currently supports Adobe CC, Zoom, and Foxit PDF Reader.  More software can be added with minor modifications.
-* **Easy Setup:**  Clear instructions and scripts are provided to simplify the setup process.
+* **Support for Multiple Software:** Currently supports Adobe CC, Zoom, and Foxit PDF Reader. More software can be added with minor modifications.
+* **Type Safety:** Built with TypeScript for better code reliability and developer experience.
+* **Easy Setup:** Clear instructions and scripts are provided to simplify the setup process.
 * **Open Source:** Contribute to the project and improve it for everyone!
 
 ## Prerequisites
 
-* **Chulalongkorn University Account:**  You must have a valid Chula account to access and borrow the software.
+* **Chulalongkorn University Account:** You must have a valid Chula account to access and borrow the software.
 * **Firebase Account:** You will need a Firebase project to deploy the Cloud Function.
-* **Node.js and npm (or yarn):** Required for local development and deployment.
+* **Node.js:** Version 22 (as specified in the functions' package.json)
+* **pnpm:** For package management (recommended) or npm
 
 ## Getting Started
 
@@ -29,48 +31,70 @@ This project leverages Firebase Cloud Functions (v2) to schedule a function that
 
    ```bash
    git clone https://github.com/ratchanonp/chula-licence-auto-renewal.git
+   cd chula-licence-auto-renewal
    ```
 
 2. **Install Dependencies:**
 
+   Using pnpm (recommended):
    ```bash
-   cd chula-licence-auto-renewal
-   npm install
+   pnpm install
+   cd functions
+   pnpm install
+   ```
 
+   Or using npm:
+   ```bash
+   npm install
    cd functions
    npm install
    ```
 
 3. **Configure Firebase:**
-   * Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/). Firebase project have to use blaze plan!
-   * (Optional) 
-     * If it's first time you use Firebase CLI, you need to install Firebase CLI by running `npm install -g firebase-tools`
-     * If it's first time you use Firebase CLI, you need to login to Firebase CLI by running `firebase login`
+   * Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/). Firebase project must use the Blaze plan!
+   * Install Firebase CLI if you haven't:
+     ```bash
+     npm install -g firebase-tools
+     ```
+   * Login to Firebase:
+     ```bash
+     firebase login
+     ```
    * Replace `<firebase-project-id>` in `.firebaserc` file with your project id
+
 4. **Set up Environment Variables:**
-   * Create a `.env` file in the `functions` directory.
-   * Add the following environment variables, replacing the placeholders with your actual credentials and desired settings:
-
+   * Copy the `.env.default` file in the `functions` directory to create `.env`:
+     ```bash
+     cd functions
+     cp .env.default .env
      ```
-     STUDENT_EMAIL = <your_student_id>@chula.ac.th
-     STUDENT_PASSWORD = <your-cunet-password>
-     AZURE_USER_ID = <your-azure-AD-id>
+   * Add your credentials to the `.env` file:
+     ```
+     STUDENT_EMAIL=<your_student_id>@chula.ac.th
+     STUDENT_PASSWORD=<your-cunet-password>
+     AZURE_USER_ID=<your-azure-AD-id>
      ```
 
-     * You can find `your-azure-AD-id` in [Borrow Page](https://licenseportal.it.chula.ac.th/Home/Borrow). Use Inspection tools or press `F12` and find for `AzureUserId` you will found a HTML tag look like this
+   To find your `AZURE_USER_ID`:
+   1. Go to the [Borrow Page](https://licenseportal.it.chula.ac.th/Home/Borrow)
+   2. Open browser's Developer Tools (F12)
+   3. Find the hidden input with id "AzureUserId":
+      ```html
+      <input id="AzureUserId" name="AzureUserId" type="hidden" value="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx">
+      ```
+   4. Copy the value (the UUID format string)
 
-        ```HTML
-        <input id="AzureUserId" name="AzureUserId" type="hidden" value="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx">
-        ```
+   **Important:** Never commit your `.env` file. It's already in `.gitignore` for security.
 
-        Your azure user id is the value in double quote `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx`
-     * **Important:** Securely store your Chula credentials.  Consider using a secrets management service for production environments.
-
-5. **Deploy the Cloud Function:**
+5. **Build and Deploy:**
 
    ```bash
-   firebase deploy --only functions
+   # In the functions directory
+   npm run build   # Build the TypeScript code
+   npm run deploy  # Deploy to Firebase
    ```
+
+   You can also use `npm run build:watch` during development to automatically rebuild on changes.
 
 ## Contributing
 
@@ -78,4 +102,4 @@ Contributions are welcome! Please open an issue or submit a pull request if you 
 
 ## Disclaimer
 
-This project is not affiliated with Chulalongkorn University. Use it at your own risk.  Ensure you comply with Chula's terms of service for software usage.
+This project is not affiliated with Chulalongkorn University. Use it at your own risk. Ensure you comply with Chula's terms of service for software usage.
