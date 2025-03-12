@@ -32,12 +32,6 @@ const HTTP_STATUS = {
  */
 export class LicenseService {
   /**
-   * Base URL for the license service API
-   * @private
-   */
-  private static readonly BASE_URL = "https://license.it.chula.ac.th";
-
-  /**
    * Validates the login credentials are set
    * @throws {LicenseError} If credentials are not set
    */
@@ -136,7 +130,7 @@ export class LicenseService {
 
   /**
    * Performs login to the license service
-   * @returns {Promise<string>} Cookie string for authenticated session
+   * @returns {Promise<string[]>} Cookie string array for authenticated session
    */
   public static async login(): Promise<string[]> {
     try {
@@ -172,36 +166,6 @@ export class LicenseService {
       logger.error("Unexpected error during login:", error);
       throw new LicenseError("Login failed unexpectedly", "UNKNOWN_ERROR");
     }
-  }
-
-  /**
-   * Handles API response and extracts operation result
-   * @param {Response} response - Fetch API response
-   * @param {string} operation - Name of the operation being performed
-   * @returns {Promise<void>}
-   * @private
-   */
-  private static async handleResponse(response: Response, operation: string): Promise<void> {
-    if (response.status !== HTTP_STATUS.REDIRECT) {
-      throw new LicenseError(
-        `${operation} failed with status: ${response.status}`,
-        "INVALID_RESPONSE"
-      );
-    }
-  }
-
-  /**
-   * Extracts cookies from response headers
-   * @param {Headers} cookies - Response headers containing cookies
-   * @returns {string[]} Array of cookie strings
-   * @private
-   */
-  private static extractCookies(cookies: Headers): string[] {
-    const setCookieHeader = cookies.get("set-cookie");
-    if (!setCookieHeader) {
-      throw new Error("No cookies found in response");
-    }
-    return Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
   }
 
   /**
