@@ -1,5 +1,5 @@
 import {ProgramLicenseID} from "../types/license";
-import {LicenseSchedulerFactory, SchedulerConfig} from "../utils/licenseSchedulerFactory";
+import {LicenseRenewalFactory, SchedulerConfig} from "../utils/licenseSchedulerFactory";
 
 /**
  * Schedules a cron job to borrow an Adobe license every Sunday at midnight.
@@ -10,6 +10,6 @@ const config: SchedulerConfig = {
   cronExpression: "0 0 * * 0",
 };
 
-const scheduler = LicenseSchedulerFactory.getScheduler(config);
+const scheduler = LicenseRenewalFactory.createRenewalScheduler(config);
 
-export const borrowAdobe = scheduler.createScheduler();
+export const borrowAdobe = scheduler.createRenewalTask();
