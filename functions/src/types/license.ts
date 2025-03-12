@@ -22,4 +22,4 @@ export interface BorrowLicenseParams {
   programLicenseId: ProgramLicenseID;
   borrowDate: Date;
   expiryDate: Date;
-} 
+}
