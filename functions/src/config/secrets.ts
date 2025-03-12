@@ -4,7 +4,6 @@ const {defineSecret} = require("firebase-functions/params");
 export const secrets = {
   studentEmail: defineSecret("STUDENT_EMAIL"),
   studentPassword: defineSecret("STUDENT_PASSWORD"),
-  azureUserID: defineSecret("AZURE_USER_ID"),
 };
 
 export const constants = {
