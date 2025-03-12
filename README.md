@@ -62,29 +62,18 @@ This project leverages Firebase Cloud Functions (v2) with TypeScript to schedule
      ```
    * Replace `<firebase-project-id>` in `.firebaserc` file with your project id
 
-4. **Set up Environment Variables:**
-   * Copy the `.env.default` file in the `functions` directory to create `.env`:
+4. **Set up Firebase Secrets:**
+   * Instead of using a local .env file, this project uses Firebase Secrets for secure configuration
+   * Set up your secrets using the Firebase CLI:
      ```bash
-     cd functions
-     cp .env.default .env
-     ```
-   * Add your credentials to the `.env` file:
-     ```
-     STUDENT_EMAIL=<your_student_id>@chula.ac.th
-     STUDENT_PASSWORD=<your-cunet-password>
-     AZURE_USER_ID=<your-azure-AD-id>
+     firebase functions:secrets:set STUDENT_EMAIL
+     # Enter your student email when prompted (typically <your_student_id>@chula.ac.th)
+     
+     firebase functions:secrets:set STUDENT_PASSWORD
+     # Enter your CU-NET password when prompted
      ```
 
-   To find your `AZURE_USER_ID`:
-   1. Go to the [Borrow Page](https://licenseportal.it.chula.ac.th/Home/Borrow)
-   2. Open browser's Developer Tools (F12)
-   3. Find the hidden input with id "AzureUserId":
-      ```html
-      <input id="AzureUserId" name="AzureUserId" type="hidden" value="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx">
-      ```
-   4. Copy the value (the UUID format string)
-
-   **Important:** Never commit your `.env` file. It's already in `.gitignore` for security.
+   **Note:** Firebase Secrets are securely stored by Firebase and automatically made available to your Cloud Functions.
 
 5. **Build and Deploy:**
 
