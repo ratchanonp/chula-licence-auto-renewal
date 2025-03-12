@@ -92,10 +92,6 @@ export class LicenseService {
    * @throws {LicenseError} If parameters are invalid
    */
   private static validateBorrowParams(params: BorrowLicenseParams): void {
-    if (!secrets.azureUserID.value()) {
-      throw new LicenseError("Azure user ID is not set", "MISSING_AZURE_ID");
-    }
-
     const maxDuration = longestBorrowDuration[params.programLicenseId];
     const durationInDays = Math.ceil(
       (params.expiryDate.getTime() - params.borrowDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -172,7 +168,6 @@ export class LicenseService {
    * Borrows a license for a program
    * @param {string} cookie - Authentication cookie
    * @param {Object} params - License borrowing parameters
-   * @param {string} params.azureUserId - Azure user ID
    * @param {string} params.userPrincipalName - User's email
    * @param {ProgramLicenseID} params.programLicenseId - ID of the program license
    * @param {Date} params.borrowDate - Date when the license is borrowed
@@ -182,7 +177,6 @@ export class LicenseService {
   public static async borrowLicense(
     cookie: string,
     params: {
-      azureUserId: string;
       userPrincipalName: string;
       programLicenseId: ProgramLicenseID;
       borrowDate: Date;
@@ -193,7 +187,6 @@ export class LicenseService {
       this.validateBorrowParams(params);
 
       const encodedPayload = new URLSearchParams({
-        AzureUserId: secrets.azureUserID.value(),
         UserPrincipalName: params.userPrincipalName,
         BorrowStatus: "Borrowing",
         ProgramLicenseID: params.programLicenseId.toString(),
