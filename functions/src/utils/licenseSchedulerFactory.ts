@@ -14,47 +14,40 @@ export interface SchedulerConfig {
 }
 
 /**
- * Interface defining the contract for license schedulers
+ * Interface defining the contract for automated license renewal schedulers
  */
-export interface ILicenseScheduler {
+export interface LicenseRenewalScheduler {
   /**
-   * Creates a scheduled function for license management
+   * Creates a scheduled function for automated license renewal
    * @returns {ReturnType<typeof onSchedule>} Firebase scheduled function
    */
-  createScheduler(): ReturnType<typeof onSchedule>;
+  createRenewalTask(): ReturnType<typeof onSchedule>;
 }
 
 /**
- * Abstract factory for creating license schedulers
+ * Factory for creating license renewal schedulers
  */
-export abstract class LicenseSchedulerFactory {
+export class LicenseRenewalFactory {
   /**
-   * Abstract method to create a scheduler
-   * @param {SchedulerConfig} config - Configuration for the scheduler
-   * @returns {ILicenseScheduler} License scheduler instance
-   */
-  abstract createScheduler(config: SchedulerConfig): ILicenseScheduler;
-
-  /**
-   * Creates a new scheduler instance.
+   * Creates a new license renewal scheduler instance
    * @param {SchedulerConfig} config Configuration for the scheduler
-   * @returns {ILicenseScheduler} A new license scheduler instance
+   * @returns {LicenseRenewalScheduler} A new license renewal scheduler instance
    */
-  public static getScheduler(config: SchedulerConfig): ILicenseScheduler {
-    return new DefaultLicenseScheduler(config);
+  public static createRenewalScheduler(config: SchedulerConfig): LicenseRenewalScheduler {
+    return new AutomaticLicenseRenewalScheduler(config);
   }
 }
 
 /**
- * Default implementation of license scheduler
+ * Implementation of automatic license renewal scheduler
  */
-export class DefaultLicenseScheduler implements ILicenseScheduler {
+export class AutomaticLicenseRenewalScheduler implements LicenseRenewalScheduler {
   private readonly programName: string;
   private readonly programLicenseId: ProgramLicenseID;
   private readonly cronExpression: string;
 
   /**
-   * Creates an instance of DefaultLicenseScheduler
+   * Creates an instance of AutomaticLicenseRenewalScheduler
    * @param {SchedulerConfig} config - Configuration for the scheduler
    */
   constructor(config: SchedulerConfig) {
@@ -64,10 +57,10 @@ export class DefaultLicenseScheduler implements ILicenseScheduler {
   }
 
   /**
-   * Creates a scheduled function for license management
+   * Creates a scheduled function for automated license renewal
    * @returns {ReturnType<typeof onSchedule>} Firebase scheduled function
    */
-  public createScheduler() {
+  public createRenewalTask() {
     return onSchedule(this.cronExpression, async () => {
       logger.info(`Starting ${this.programName} license renewal process...`);
 
