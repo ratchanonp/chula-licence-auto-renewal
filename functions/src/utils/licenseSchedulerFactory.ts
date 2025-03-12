@@ -61,35 +61,39 @@ export class AutomaticLicenseRenewalScheduler implements LicenseRenewalScheduler
    * @returns {ReturnType<typeof onSchedule>} Firebase scheduled function
    */
   public createRenewalTask() {
-    return onSchedule(this.cronExpression, async () => {
-      logger.info(`Starting ${this.programName} license renewal process...`);
+    return onSchedule(
+      {
+        secrets: [secrets.studentEmail, secrets.studentPassword],
+        schedule: this.cronExpression,
+      },
+      async () => {
+        logger.info(`Starting ${this.programName} license renewal process...`);
 
-      try {
-        if (!secrets.azureUserID.value() || !secrets.studentEmail.value()) {
-          throw new Error("Required credentials are not set");
+        try {
+          if (!secrets.studentEmail.value()) {
+            throw new Error("Student email is not set");
+          }
+
+          const cookies = await LicenseService.login();
+          const cookie = cookies.join("; ");
+
+          const borrowDate = new Date();
+          const expiryDate = new Date(borrowDate);
+          expiryDate.setDate(expiryDate.getDate() + longestBorrowDuration[this.programLicenseId]);
+
+          await LicenseService.borrowLicense(cookie, {
+            userPrincipalName: secrets.studentEmail.value(),
+            programLicenseId: this.programLicenseId,
+            borrowDate,
+            expiryDate,
+          });
+
+          logger.info(`Successfully renewed ${this.programName} license until ${expiryDate.toLocaleDateString()}`);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+          logger.error(`${this.programName} license renewal failed: ${errorMessage}`);
+          throw error; // Re-throw to mark the function execution as failed
         }
-
-        const cookies = await LicenseService.login();
-        const cookie = cookies.join("; ");
-
-        const borrowDate = new Date();
-        const expiryDate = new Date(borrowDate);
-        expiryDate.setDate(expiryDate.getDate() + longestBorrowDuration[this.programLicenseId]);
-
-        await LicenseService.borrowLicense(cookie, {
-          azureUserId: secrets.azureUserID.value(),
-          userPrincipalName: secrets.studentEmail.value(),
-          programLicenseId: this.programLicenseId,
-          borrowDate,
-          expiryDate,
-        });
-
-        logger.info(`Successfully renewed ${this.programName} license until ${expiryDate.toLocaleDateString()}`);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-        logger.error(`${this.programName} license renewal failed: ${errorMessage}`);
-        throw error; // Re-throw to mark the function execution as failed
-      }
-    });
+      });
   }
 }
