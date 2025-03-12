@@ -17,7 +17,6 @@ export const longestBorrowDuration: Record<ProgramLicenseID, number> = {
 };
 
 export interface BorrowLicenseParams {
-  azureUserId: string;
   userPrincipalName: string;
   programLicenseId: ProgramLicenseID;
   borrowDate: Date;
