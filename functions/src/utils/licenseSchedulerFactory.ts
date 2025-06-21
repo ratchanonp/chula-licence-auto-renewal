@@ -1,8 +1,8 @@
 import * as logger from "firebase-functions/logger";
 import {onSchedule} from "firebase-functions/scheduler";
+import {secrets} from "../config/secrets";
 import {LicenseService} from "../services/licenseService";
 import {ProgramLicenseID, longestBorrowDuration} from "../types/license";
-import {secrets} from "../config/secrets";
 
 /**
  * Configuration interface for license scheduler
@@ -65,6 +65,9 @@ export class AutomaticLicenseRenewalScheduler implements LicenseRenewalScheduler
       {
         secrets: [secrets.studentEmail, secrets.studentPassword],
         schedule: this.cronExpression,
+        timeZone: "Asia/Bangkok",
+
+
       },
       async () => {
         logger.info(`Starting ${this.programName} license renewal process...`);
