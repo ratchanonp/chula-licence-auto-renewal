@@ -1,5 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const {defineSecret} = require("firebase-functions/params");
+
+import {defineSecret} from "firebase-functions/params";
 
 export const secrets = {
   studentEmail: defineSecret("STUDENT_EMAIL"),
