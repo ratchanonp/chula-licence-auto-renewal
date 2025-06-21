@@ -68,7 +68,7 @@ export class LicenseService {
     if (response.status !== HTTP_STATUS.REDIRECT) {
       throw new LicenseError(
         `${operation} failed with status: ${response.status}`,
-        "INVALID_RESPONSE"
+        "INVALID_RESPONSE",
       );
     }
   }
@@ -94,20 +94,20 @@ export class LicenseService {
   private static validateBorrowParams(params: BorrowLicenseParams): void {
     const maxDuration = longestBorrowDuration[params.programLicenseId];
     const durationInDays = Math.ceil(
-      (params.expiryDate.getTime() - params.borrowDate.getTime()) / (1000 * 60 * 60 * 24)
+      (params.expiryDate.getTime() - params.borrowDate.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (durationInDays > maxDuration) {
       throw new LicenseError(
         `Borrow duration exceeds maximum allowed (${maxDuration} days)`,
-        "INVALID_DURATION"
+        "INVALID_DURATION",
       );
     }
 
     if (params.borrowDate > params.expiryDate) {
       throw new LicenseError(
         "Borrow date must be before expiry date",
-        "INVALID_DATES"
+        "INVALID_DATES",
       );
     }
   }
@@ -181,7 +181,7 @@ export class LicenseService {
       programLicenseId: ProgramLicenseID;
       borrowDate: Date;
       expiryDate: Date;
-    }
+    },
   ): Promise<void> {
     try {
       this.validateBorrowParams(params);
